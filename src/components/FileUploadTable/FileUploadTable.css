@@ -1,0 +1,207 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+/* General Layout */
+.file-upload-container {
+  padding: 20px; /* Increased padding for better spacing */
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #1a1a1a;
+  color: #ffffff; /* White text for file names and primary content */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Headings */
+.file-upload-container h2 {
+  font-size: 1.5rem; /* Larger heading as per image */
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #e0e0e0;
+  text-align: center;
+}
+
+/* Global Progress Bar */
+.global-progress {
+  margin-bottom: 1.5rem;
+}
+
+.global-progress .label {
+  font-size: 0.875rem;
+  color: #a0a0a0; /* Secondary text color */
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.global-progress .progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: #333333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.global-progress .progress-bar {
+  height: 100%;
+  background-color: #00ffcc; /* Green progress bar */
+  transition: width 0.3s ease;
+}
+
+/* Table Styles */
+.upload-queue-table {
+  overflow-x: auto;
+}
+
+.upload-queue-table table {
+  min-width: 100%;
+  border-collapse: collapse;
+  background-color: #1a1a1a;
+}
+
+.upload-queue-table thead {
+  background-color: #2a2a2a;
+}
+
+.upload-queue-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #a0a0a0; /* Header text color */
+  border-bottom: 1px solid #4a4a4a;
+}
+
+.upload-queue-table td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #ffffff; /* White text for file names and details */
+  border-top: 1px solid #4a4a4a;
+}
+
+.upload-queue-table .status-complete {
+  color: #00ffcc; /* Green for completed status */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.upload-queue-table .status-complete svg {
+  width: 1rem;
+  height: 1rem;
+  fill: #00ffcc; /* Green checkmark */
+}
+
+.upload-queue-table .status-error {
+  color: #ff4444; /* Red for errors */
+}
+
+.upload-queue-table .progress-bar-container {
+  width: 150px; /* Consistent with image width */
+  height: 6px;
+  background-color: #4a4a4a;
+  border-radius: 3px;
+}
+
+.upload-queue-table .progress-bar {
+  height: 100%;
+  background-color: #00ffcc; /* Green progress bar */
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.upload-queue-table .progress-text {
+  margin-left: 0.5rem;
+  color: #a0a0a0; /* Secondary text color */
+}
+
+/* Pause/Resume Button */
+.upload-button {
+  padding: 0.75rem 2rem;
+  background-color: #00ffcc; /* Green button */
+  color: #1a1a1a; /* Dark text on button */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  display: block;
+  margin: 1.5rem auto; /* Centered button */
+  width: fit-content;
+}
+
+.upload-button:hover {
+  background-color: #00b399; /* Darker green on hover */
+}
+
+.upload-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 255, 204, 0.5);
+}
+
+/* Drop Zone (if integrated with upload functionality) */
+.drop-zone {
+  border: 2px dashed #4a4a4a;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  background-color: #2a2a2a;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.drop-zone:hover {
+  border-color: #00ffcc;
+  background-color: #333333;
+}
+
+.upload-icon {
+  font-size: 24px;
+  color: #00ffcc;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.choose-folder {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background-color: #4a4a4a;
+  border: none;
+  border-radius: 5px;
+  color: #e0e0e0;
+  cursor: pointer;
+}
+
+.choose-folder:hover {
+  background-color: #5a5a5a;
+}
+
+/* Responsive Design */
+@media (max-width: 320px) {
+  .file-upload-container {
+    padding: 10px;
+    max-width: 100%;
+  }
+  .upload-queue-table th,
+  .upload-queue-table td {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  .upload-button {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.875rem;
+  }
+  .drop-zone {
+    padding: 20px;
+  }
+  .choose-folder {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+  }
+}
