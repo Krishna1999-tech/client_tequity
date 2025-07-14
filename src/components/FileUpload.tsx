@@ -26,7 +26,6 @@ interface FileUpload {
 const FileUpload: React.FC = () => {
   const [queue, setQueue] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
-  const [uploadStatus, setUploadStatus] = useState<{ [key: string]: string }>({});
   const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
   const API_URL = 'http://localhost:3000/api/documents';
   const MAX_PARALLEL_UPLOADS = 3;
@@ -80,49 +79,51 @@ const FileUpload: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const rawData = await response.json();
       console.log('Raw API Response:', rawData);
       const data = rawData as ApiFile;
-      const newFileUpload = {
-        id: data._id,
-        relativePath: file.webkitRelativePath || file.name,
-        size: typeof data.size === 'number' && data.size > 0 ? data.size : file.size,
-        status: 'Done' as const,
-        progress: 100,
-        uploadDate: data.uploadDate,
-      };
-      console.log('Adding to uploadedFiles:', newFileUpload);
-      setUploadedFiles((prev) => [...prev, newFileUpload]);
-      setUploadStatus((prev) => ({ ...prev, [file.name]: 'Completed' }));
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.relativePath === (file.webkitRelativePath || file.name)
+            ? {
+                ...f,
+                id: data._id,
+                size: typeof data.size === 'number' && data.size > 0 ? data.size : file.size,
+                status: 'Done' as const,
+                progress: 100,
+                uploadDate: data.uploadDate,
+              }
+            : f
+        )
+      );
       if (liveRegionRef.current) {
         liveRegionRef.current.textContent = `Upload completed for ${file.name}`;
       }
     } catch (error) {
-      if (retries < MAX_RETRIES && error instanceof Error && error.message.includes('5')) {
+      console.error(`Upload error for ${file.name}:`, error);
+      if (retries < MAX_RETRIES) {
         console.log(`Retrying upload for ${file.name}, attempt ${retries + 1}`);
         await uploadFile(file, retries + 1);
       } else {
-        const newFileUpload = {
-          id: crypto.randomUUID(),
-          relativePath: file.webkitRelativePath || file.name,
-          size: file.size,
-          status: 'Error' as const,
-          progress: uploadProgress[file.name] || 0,
-          uploadDate: new Date().toISOString(),
-        };
-        console.log('Adding to uploadedFiles (error):', newFileUpload);
-        setUploadStatus((prev) => ({
-          ...prev,
-          [file.name]: `Failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        }));
-        setUploadedFiles((prev) => [...prev, newFileUpload]);
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.relativePath === (file.webkitRelativePath || file.name)
+              ? {
+                  ...f,
+                  status: 'Error' as const,
+                  progress: uploadProgress[file.name] || 0,
+                  uploadDate: new Date().toISOString(),
+                }
+              : f
+          )
+        );
         if (liveRegionRef.current) {
           liveRegionRef.current.textContent = `Upload failed for ${file.name}`;
         }
-        console.error(`Upload failed for ${file.name}:`, error);
       }
     }
   };
@@ -134,14 +135,36 @@ const FileUpload: React.FC = () => {
     let activeUploads = 0;
     let index = 0;
 
+    // Add files to uploadedFiles with Queued status
+    setUploadedFiles((prev) => {
+      const existingPaths = new Set(prev.map((f) => f.relativePath));
+      const newFiles = filesToUpload
+        .filter((file) => !existingPaths.has(file.webkitRelativePath || file.name))
+        .map((file) => ({
+          id: crypto.randomUUID(),
+          relativePath: file.webkitRelativePath || file.name,
+          size: file.size,
+          status: 'Queued' as const,
+          progress: 0,
+        }));
+      return [...prev, ...newFiles];
+    });
+
     const uploadNext = async () => {
       while (index < filesToUpload.length && activeUploads < MAX_PARALLEL_UPLOADS) {
         const file = filesToUpload[index];
         index++;
         activeUploads++;
 
+        // Update status to Uploading
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.relativePath === (file.webkitRelativePath || file.name)
+              ? { ...f, status: 'Uploading' as const, progress: 0 }
+              : f
+          )
+        );
         setUploadProgress((prev) => ({ ...prev, [file.name]: 0 }));
-        setUploadStatus((prev) => ({ ...prev, [file.name]: 'Uploading' }));
 
         const uploadInterval = setInterval(() => {
           setUploadProgress((prev) => {
@@ -152,6 +175,13 @@ const FileUpload: React.FC = () => {
             }
             return { ...prev, [file.name]: Math.min(current + 10, 100) };
           });
+          setUploadedFiles((prev) =>
+            prev.map((f) =>
+              f.relativePath === (file.webkitRelativePath || file.name)
+                ? { ...f, progress: Math.min((uploadProgress[file.name] || 0) + 10, 100) }
+                : f
+            )
+          );
         }, 500);
 
         await uploadFile(file).finally(() => {
@@ -171,7 +201,8 @@ const FileUpload: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('uploadedFiles updated:', uploadedFiles);
+    console.log('Queue:', queue);
+    console.log('UploadedFiles:', uploadedFiles);
     if (queue.length > 0) startUploads();
   }, [queue]);
 
